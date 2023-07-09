@@ -10,29 +10,29 @@ public abstract class MotDePasseClair {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Veuillez saisir votre mot de passe : ");
-        String password = scanner.nextLine();
+        String motDePasse = scanner.nextLine();
 
-        String hashedPassword = getMD5Hash(password);
+        String motDePasseHache = getMD5Hash(motDePasse);
 
         List<MotDePasseClair> crackers = createMotDePasseClair();
-        boolean passwordFound = false;
+        boolean motDePasseTrouve = false;
 
         for (MotDePasseClair cracker : crackers) {
-            String crackedPassword = cracker.crackPassword(hashedPassword);
+            String motDePasseDechiffre = cracker.casserMotDePasse(motDePasseHache);
 
-            if (crackedPassword != null) {
+            if (motDePasseDechiffre != null) {
                 if (cracker instanceof DictionaryMotDePasseClair) {
-                    System.out.println("Le mot de passe trouvé par attaque par dictionnaire est : " + crackedPassword);
+                    System.out.println("Le mot de passe trouvé par attaque par dictionnaire est : " + motDePasseDechiffre);
                 } else if (cracker instanceof BruteForceMotDePasseClair) {
-                    System.out.println("Le mot de passe trouvé par attaque brute force est : " + crackedPassword);
+                    System.out.println("Le mot de passe trouvé par attaque brute force est : " + motDePasseDechiffre);
                 } else {
-                    System.out.println("Le mot de passe trouvé est : " + crackedPassword);
+                    System.out.println("Le mot de passe trouvé est : " + motDePasseDechiffre);
                 }
-                passwordFound = true;
+                motDePasseTrouve = true;
             }
         }
 
-        if (!passwordFound) {
+        if (!motDePasseTrouve) {
             System.out.println("Le mot de passe n'a pas été trouvé.");
         }
 
@@ -47,7 +47,7 @@ public abstract class MotDePasseClair {
         return crackers;
     }
 
-    public abstract String crackPassword(String hashedPassword);
+    public abstract String casserMotDePasse(String motDePasseHache);
 
     protected static String getMD5Hash(String input) {
         try {
@@ -69,73 +69,73 @@ public abstract class MotDePasseClair {
 }
 
 class BruteForceMotDePasseClair extends MotDePasseClair {
-    private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyz";
-    private static final int MAX_LENGTH = 4;
+    private static final String CARACTERES = "abcdefghijklmnopqrstuvwxyz";
+    private static final int LONGUEUR_MAX = 4;
 
     @Override
-    public String crackPassword(String hashValue) {
-        for (int length = 1; length <= MAX_LENGTH; length++) {
-            StringBuilder password = new StringBuilder(length);
-            generatePasswords(password, length, hashValue);
-            if (password.length() > 0) {
-                return password.toString();
+    public String casserMotDePasse(String valeurHachee) {
+        for (int longueur = 1; longueur <= LONGUEUR_MAX; longueur++) {
+            StringBuilder motDePasse = new StringBuilder(longueur);
+            genererMotsDePasse(motDePasse, longueur, valeurHachee);
+            if (motDePasse.length() > 0) {
+                return motDePasse.toString();
             }
         }
         return null;
     }
 
-    private boolean generatePasswords(StringBuilder password, int length, String hashValue) {
-        if (password.length() == length) {
-            String hashedPassword = getMD5Hash(password.toString());
-            if (hashedPassword.equals(hashValue)) {
+    private boolean genererMotsDePasse(StringBuilder motDePasse, int longueur, String valeurHachee) {
+        if (motDePasse.length() == longueur) {
+            String motDePasseHache = getMD5Hash(motDePasse.toString());
+            if (motDePasseHache.equals(valeurHachee)) {
                 return true;
             }
             return false;
         }
 
-        for (int i = 0; i < CHARACTERS.length(); i++) {
-            password.append(CHARACTERS.charAt(i));
-            if (generatePasswords(password, length, hashValue)) {
+        for (int i = 0; i < CARACTERES.length(); i++) {
+            motDePasse.append(CARACTERES.charAt(i));
+            if (genererMotsDePasse(motDePasse, longueur, valeurHachee)) {
                 return true;
             }
-            password.setLength(password.length() - 1);
+            motDePasse.setLength(motDePasse.length() - 1);
         }
 
         return false;
     }
 }
 
-class DictionaryMotDePasseClair extends MotDePasseClair {
-    private static final List<String> DICTIONARY = loadDictionary();
+class DictionnaireMotDePasseClair extends MotDePasseClair {
+    private static final List<String> DICTIONNAIRE = chargerDictionnaire();
 
     @Override
-    public String crackPassword(String hashValue) {
-        return dictionaryAttack(hashValue);
+    public String casserMotDePasse(String valeurHachee) {
+        return attaqueDictionnaire(valeurHachee);
     }
 
-    public String dictionaryAttack(String hashValue) {
-        for (String password : DICTIONARY) {
-            String hashedPassword = getMD5Hash(password);
-            if (hashedPassword.equals(hashValue)) {
-                return password;
+    public String attaqueDictionnaire(String valeurHachee) {
+        for (String motDePasse : DICTIONNAIRE) {
+            String motDePasseHache = getMD5Hash(motDePasse);
+            if (motDePasseHache.equals(valeurHachee)) {
+                return motDePasse;
             }
         }
         return null;
     }
 
-    private static List<String> loadDictionary() {
-        List<String> dictionary = new ArrayList<>();
+    private static List<String> chargerDictionnaire() {
+        List<String> dictionnaire = new ArrayList<>();
         // Charger le dictionnaire depuis un fichier ou une autre source
         // Ajouter les mots de passe potentiels au dictionnaire
 
-        dictionary.add("pile");
-        dictionary.add("lait");
-        dictionary.add("main");
-        dictionary.add("test");
-        dictionary.add("voir");
-        dictionary.add("toit");
-        dictionary.add("love");
+        dictionnaire.add("pile");
+        dictionnaire.add("lait");
+        dictionnaire.add("main");
+        dictionnaire.add("test");
+        dictionnaire.add("voir");
+        dictionnaire.add("toit");
+        dictionnaire.add("love");
 
-        return dictionary;
+        return dictionnaire;
     }
 }

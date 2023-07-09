@@ -7,39 +7,39 @@ import java.util.Scanner;
 
 public class MotDePasseHache {
 
-    public interface PasswordCracker {
-        String crackPassword(String hashValue);
+    public interface CasserMotDePasse {
+        String casserMotDePasse(String valeurHachee);
     }
 
-    public static class BruteForceCracker implements PasswordCracker {
-        private String characters;
-        private int passwordLength;
+    public static class CrackerBruteForce implements CasserMotDePasse {
+        private String caracteres;
+        private int longueurMotDePasse;
 
-        public BruteForceCracker(String characters, int passwordLength) {
-            this.characters = characters;
-            this.passwordLength = passwordLength;
+        public CrackerBruteForce(String caracteres, int longueurMotDePasse) {
+            this.caracteres = caracteres;
+            this.longueurMotDePasse = longueurMotDePasse;
         }
 
         @Override
-        public String crackPassword(String hashValue) {
-            StringBuilder password = new StringBuilder();
-            char[] charArray = characters.toCharArray();
-            int[] indices = new int[passwordLength];
-            boolean found = false;
+        public String casserMotDePasse(String valeurHachee) {
+            StringBuilder motDePasse = new StringBuilder();
+            char[] tableauCaracteres = caracteres.toCharArray();
+            int[] indices = new int[longueurMotDePasse];
+            boolean trouve = false;
 
-            while (!found) {
-                password.setLength(0);
+            while (!trouve) {
+                motDePasse.setLength(0);
                 for (int index : indices) {
-                    password.append(charArray[index]);
+                    motDePasse.append(tableauCaracteres[index]);
                 }
 
-                String hashedPassword = getMD5Hash(password.toString());
+                String motDePasseHache = getMD5Hash(motDePasse.toString());
 
-                if (hashedPassword.equals(hashValue)) {
-                    found = true;
+                if (motDePasseHache.equals(valeurHachee)) {
+                    trouve = true;
                 } else {
-                    int i = passwordLength - 1;
-                    while (i >= 0 && indices[i] == charArray.length - 1) {
+                    int i = longueurMotDePasse - 1;
+                    while (i >= 0 && indices[i] == tableauCaracteres.length - 1) {
                         indices[i] = 0;
                         i--;
                     }
@@ -50,46 +50,46 @@ public class MotDePasseHache {
                 }
             }
 
-            if (found) {
-                return password.toString();
+            if (trouve) {
+                return motDePasse.toString();
             } else {
                 return null;
             }
         }
     }
 
-    public static class DictionaryCracker implements PasswordCracker {
-        private List<String> dictionary;
+    public static class CrackerDictionnaire implements CasserMotDePasse {
+        private List<String> dictionnaire;
 
-        public DictionaryCracker(List<String> dictionary) {
-            this.dictionary = dictionary;
+        public CrackerDictionnaire(List<String> dictionnaire) {
+            this.dictionnaire = dictionnaire;
         }
 
         @Override
-        public String crackPassword(String hashValue) {
-            for (String password : dictionary) {
-                String hashedPassword = getMD5Hash(password);
-                if (hashedPassword.equals(hashValue)) {
-                    return password;
+        public String casserMotDePasse(String valeurHachee) {
+            for (String motDePasse : dictionnaire) {
+                String motDePasseHache = getMD5Hash(motDePasse);
+                if (motDePasseHache.equals(valeurHachee)) {
+                    return motDePasse;
                 }
             }
             return null;
         }
     }
 
-    private static List<String> loadDictionary(String fileName) {
-        List<String> dictionary = new ArrayList<>();
+    private static List<String> chargerDictionnaire(String nomFichier) {
+        List<String> dictionnaire = new ArrayList<>();
 
         // Chargement du dictionnaire depuis un fichier ou une autre source
         // Ajouter les mots de passe potentiels au dictionnaire
 
-        dictionary.add("test");
-        dictionary.add("lait");
-        dictionary.add("love");
-        dictionary.add("peur");
-        dictionary.add("yeux");
+        dictionnaire.add("test");
+        dictionnaire.add("lait");
+        dictionnaire.add("love");
+        dictionnaire.add("peur");
+        dictionnaire.add("yeux");
 
-        return dictionary;
+        return dictionnaire;
     }
 
     private static String getMD5Hash(String input) {
@@ -111,46 +111,46 @@ public class MotDePasseHache {
     }
 
     public static void main(String[] args) {
-        String hashedPassword = "098f6bcd4621d373cade4e832627b4f6";
+        String valeurHachee = "098f6bcd4621d373cade4e832627b4f6";
 
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("Veuillez saisir votre mot de passe : ");
-        String password = scanner.nextLine();
+        String motDePasse = scanner.nextLine();
 
         scanner.close();
 
         // Création du cracker en utilisant la Factory Method
-        PasswordCracker cracker = createCracker();
+        CasserMotDePasse cracker = creerCracker();
 
-        String bruteForcePassword = cracker.crackPassword(hashedPassword);
+        String motDePasseForceBrute = cracker.casserMotDePasse(valeurHachee);
 
-        if (bruteForcePassword != null) {
-            System.out.println("Le mot de passe trouvé par force brute est : " + bruteForcePassword);
+        if (motDePasseForceBrute != null) {
+            System.out.println("Le mot de passe trouvé par force brute est : " + motDePasseForceBrute);
         } else {
             System.out.println("Le mot de passe n'a pas été trouvé par force brute.");
         }
 
-        String dictionaryPassword = cracker.crackPassword(hashedPassword);
+        String motDePasseDictionnaire = cracker.casserMotDePasse(valeurHachee);
 
-        if (dictionaryPassword != null) {
-            System.out.println("Le mot de passe trouvé par attaque par dictionnaire est : " + dictionaryPassword);
+        if (motDePasseDictionnaire != null) {
+            System.out.println("Le mot de passe trouvé par attaque par dictionnaire est : " + motDePasseDictionnaire);
         } else {
             System.out.println("Le mot de passe n'a pas été trouvé par attaque par dictionnaire.");
         }
     }
 
-    private static PasswordCracker createCracker() {
+    private static CasserMotDePasse creerCracker() {
         // Choix du type de cracker (BruteForce ou Dictionary)
-        String crackerType = "BruteForce";
+        String typeCracker = "BruteForce";
 
-        if (crackerType.equalsIgnoreCase("BruteForce")) {
-            String characters = "abcdefghijklmnopqrstuvwxyz";
-            int passwordLength = 4;
-            return new BruteForceCracker(characters, passwordLength);
-        } else if (crackerType.equalsIgnoreCase("Dictionary")) {
-            List<String> dictionary = loadDictionary("dictionnaire.txt");
-            return new DictionaryCracker(dictionary);
+        if (typeCracker.equalsIgnoreCase("BruteForce")) {
+            String caracteres = "abcdefghijklmnopqrstuvwxyz";
+            int longueurMotDePasse = 4;
+            return new CrackerBruteForce(caracteres, longueurMotDePasse);
+        } else if (typeCracker.equalsIgnoreCase("Dictionary")) {
+            List<String> dictionnaire = chargerDictionnaire("dictionnaire.txt");
+            return new CrackerDictionnaire(dictionnaire);
         }
 
         throw new IllegalArgumentException("Type de cracker invalide.");
